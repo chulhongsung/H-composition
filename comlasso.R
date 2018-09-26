@@ -1,8 +1,9 @@
 rm(list = ls())
 gc(reset = TRUE)
 
-install.packages('dplyr')
-library(dplyr)
+#load(data)
+
+if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
 
 ## data preprocessing
 
@@ -222,11 +223,7 @@ while( i <= 2000)
   }
   
   i <- i + 1
+
 }
 
-
-
-
-
-
-
+plot(beta, beta_tmp[1:82])
