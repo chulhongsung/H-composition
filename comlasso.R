@@ -169,7 +169,7 @@ a <- 0.5
 ### loop 
 i <- 1
 
-while( i <= 2000)
+while( i <= 500)
 {
   d <- u_tmp - gamma_tmp
   
@@ -208,12 +208,10 @@ while( i <= 2000)
   
   u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
   
-  #'Gradient::', max(abs(G)), '\n',
-  
-  if( i %% 100 == 0)
+  if( i %% 50 == 0)
   {
     cat( ' Epoch:: ', i, '\n', 
-          
+         'Gradient::', max(abs(G)), '\n',
          'Loss::', Loss(beta_tmp) + lambda_1*sum(abs(gamma_tmp[1:82])) + lambda_2*sum(abs(gamma_tmp[83:length(gamma_tmp)])) +
            t(rho*u_tmp) %*% (A%*%beta_tmp - gamma_tmp) + (rho/2)*t((A%*%beta_tmp - gamma_tmp))%*%(A%*%beta_tmp - gamma_tmp), '\n', '\n',
          'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
