@@ -6,8 +6,8 @@ load('SNU.RData')
 install.packages('dplyr')
 library(dplyr)
 
-### data preprocessing
-# 
+## data preprocessing
+
 # g <-  bf_x.o[selv,]
 # 
 # ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
@@ -122,9 +122,9 @@ Loss <- function(beta){
 ### Newton's method under equality constrains
 
 ### Gradient
-gradient <- function(beta, d)
+gradient <- function(beta, d_tmp)
 {
-  G <- -t(Y -(1/(1+exp(-Z%*%beta))))%*%Z + t(rho*(t(A)%*%(A%*%beta + d)))
+  G <- -t(Y -(1/(1+exp(-Z%*%beta))))%*%Z + t(rho*(t(A)%*%(A%*%beta + d_tmp)))
   return(G)
 }
 
@@ -170,7 +170,7 @@ a <- 0.5
 ### loop 
 i <- 1
 
-while( i <= 10000)
+while( i <= 2000)
 {
   d <- u_tmp - gamma_tmp
   
@@ -209,12 +209,14 @@ while( i <= 10000)
   
   u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
   
+  #'Gradient::', max(abs(G)), '\n',
+  
   if( i %% 100 == 0)
   {
     cat( ' Epoch:: ', i, '\n', 
-         'Gradient::', max(abs(G)), '\n', 
+          
          'Loss::', Loss(beta_tmp) + lambda_1*sum(abs(gamma_tmp[1:82])) + lambda_2*sum(abs(gamma_tmp[83:length(gamma_tmp)])) +
-           t(rho*u_tmp) %*% (A%*%beta_tmp - gamma_tmp) + (rho/2)*sum((A%*%beta_tmp - gamma_tmp)^2), '\n', '\n',
+           t(rho*u_tmp) %*% (A%*%beta_tmp - gamma_tmp) + (rho/2)*t((A%*%beta_tmp - gamma_tmp))%*%(A%*%beta_tmp - gamma_tmp), '\n', '\n',
          'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
          'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
          'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum), '\n','\n',
@@ -227,8 +229,6 @@ while( i <= 10000)
 
 
 
-
-G
 
 
 
