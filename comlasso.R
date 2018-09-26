@@ -1,8 +1,6 @@
 rm(list = ls())
 gc(reset = TRUE)
 
-load('SNU.RData')
-
 install.packages('dplyr')
 library(dplyr)
 
