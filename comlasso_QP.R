@@ -1,12 +1,13 @@
 rm(list = ls())
 gc(reset = TRUE)
 
-#load(data)
+load('SNU.RData')
 
-if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
+install.packages('dplyr')
+library(dplyr)
 
-## data preprocessing
-
+### data preprocessing
+# 
 # g <-  bf_x.o[selv,]
 # 
 # ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
@@ -118,12 +119,10 @@ Loss <- function(beta){
   return(L)
 }
 
-### Newton's method under equality constrains
-
 ### Gradient
-gradient <- function(beta, d_tmp)
+gradient <- function(beta, d)
 {
-  G <- -t(Y -(1/(1+exp(-Z%*%beta))))%*%Z + t(rho*(t(A)%*%(A%*%beta + d_tmp)))
+  G <- -t(Y -(1/(1+exp(-Z%*%beta))))%*%Z + t(rho*(t(A)%*%(A%*%beta + d)))
   return(G)
 }
 
@@ -143,7 +142,7 @@ likelihood_hessian <- function(beta)
 ### 
 rho <- 0.5
 
-lambda_1 <- 3
+lambda_1 <- 2
 
 lambda_2 <- 3
 
@@ -157,19 +156,15 @@ nu_tmp <- rnorm(p*4, 0, 1)
 
 u_tmp <- nu_tmp / rho
 
-beta_tmp <- rep(c(1,-1), 41)
+beta_tmp <- rnorm(p, 0, 1)
 
 ### constraint
 cons <- rep(1, 82)
 
-### backtracking line search
-bt_size <- 0.5
-a <- 0.5
-
 ### loop 
 i <- 1
 
-while( i <= 500)
+while( i <= 10000)
 {
   d <- u_tmp - gamma_tmp
   
@@ -208,12 +203,12 @@ while( i <= 500)
   
   u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
   
-  if( i %% 50 == 0)
+  if( i %% 100 == 0)
   {
     cat( ' Epoch:: ', i, '\n', 
-         'Gradient::', max(abs(G)), '\n',
+         'Gradient::', max(abs(G)), '\n', 
          'Loss::', Loss(beta_tmp) + lambda_1*sum(abs(gamma_tmp[1:82])) + lambda_2*sum(abs(gamma_tmp[83:length(gamma_tmp)])) +
-           t(rho*u_tmp) %*% (A%*%beta_tmp - gamma_tmp) + (rho/2)*t((A%*%beta_tmp - gamma_tmp))%*%(A%*%beta_tmp - gamma_tmp), '\n', '\n',
+           t(rho*u_tmp) %*% (A%*%beta_tmp - gamma_tmp) + (rho/2)*sum((A%*%beta_tmp - gamma_tmp)^2), '\n', '\n',
          'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
          'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
          'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum), '\n','\n',
@@ -221,7 +216,13 @@ while( i <= 500)
   }
   
   i <- i + 1
-
 }
 
-plot(beta, beta_tmp[1:82])
+
+
+
+
+G
+
+
+
