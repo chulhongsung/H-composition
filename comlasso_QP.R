@@ -7,42 +7,6 @@ if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
 if(!require(quadprog)){ install.packages('quadprog')}; require(quadprog)
 if(!require(numDeriv)){ install.packages('numDeriv')}; require(numDeriv)
 
-load('H-composition3.RData')
-## data preprocessing
-
-# g <-  bf_x.o[selv,]
-# 
-# ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
-# 
-# g <- g[!(g$genus %in% ng$genus), ]
-# 
-# g$g1 <- g %>% group_by(pylum) %>% group_indices() #5
-# g$g2 <- g %>% group_by(pylum, class) %>% group_indices() #11
-# g$g3 <- g %>% group_by(pylum, class, order) %>% group_indices() #16
-# g$g4 <- g %>% group_by(pylum, class, order, family) %>% group_indices() #39
-# g$g5 <- g %>% group_by(pylum, class, order, family, genus) %>% group_indices() #89
-# 
-# g <- g[g$g2 != 2,]
-# g <- g[g$g4 != 32,]
-# 
-# ug <- g %>% distinct(pylum, class, order, family, genus)%>% arrange(pylum, class, order, family, genus)
-# 
-# ug$g1 <- ug %>% group_by(pylum) %>% group_indices() #5
-# 
-# ug <- ug[ug$g1 != 4,]
-# 
-# ug$g2 <- ug %>% group_by(pylum, class) %>% group_indices() #11
-# 
-# ug <- ug[ug$g2 != 7 & ug$g2 != 8,]
-# 
-# ug$g3 <- ug %>% group_by(pylum, class, order) %>% group_indices() #16
-# 
-# ug <- ug[ug$g3 != 2 & ug$g3 != 11,]
-# 
-# ug$g4 <- ug %>% group_by(pylum, class, order, family) %>% group_indices() #39
-# 
-# ug$g5 <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() #87
-
 set.seed(2019)
 
 gl <- list()
