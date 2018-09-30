@@ -1,13 +1,15 @@
 rm(list = ls())
 gc(reset = TRUE)
 
-load('SNU.RData')
+#load(data)
 
-install.packages('dplyr')
-library(dplyr)
+if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
+if(!require(quadprog)){ install.packages('quadprog')}; require(quadprog)
+if(!require(numDeriv)){ install.packages('numDeriv')}; require(numDeriv)
 
-### data preprocessing
-# 
+load('H-composition3.RData')
+## data preprocessing
+
 # g <-  bf_x.o[selv,]
 # 
 # ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
@@ -41,7 +43,7 @@ library(dplyr)
 # 
 # ug$g5 <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() #87
 
-set.seed(526)
+set.seed(2019)
 
 gl <- list()
 gl[[1]] <- ug %>% group_by(pylum) %>% group_indices() ### k1 = 5
@@ -115,25 +117,48 @@ A <- rbind(I, pi_matrix[[1]], pi_matrix[[2]], pi_matrix[[3]])
 ### Loss function for beta
 
 Loss <- function(beta){
-  L  <- -t(Y) %*% (Z %*% beta) + colSums(log(1+exp(Z%*%beta))) + (rho/2)*(t(A%*%beta)%*%(A%*%beta) + 2*t(d)%*%A%*%beta)
+  L  <- -t(Y) %*% (X %*% beta) + colSums(log(1+exp(X%*%beta)))
   return(L)
 }
 
+### Newton's method under equality constrains
+
 ### Gradient
-gradient <- function(beta, d)
+gradient <- function(beta)
 {
-  G <- -t(Y -(1/(1+exp(-Z%*%beta))))%*%Z + t(rho*(t(A)%*%(A%*%beta + d)))
-  return(G)
+  G <- t(X)%*%(-Y+(1/(1+exp(-X%*%beta))))
+  return(t(G))
 }
 
+# loloss <- function(x){
+#   -t(Y) %*% (X %*% x) + colSums(log(1+exp(X%*%x)))
+# }
+
+# hessian(loloss, x = beta_tmp)
+# 
+# gradient(beta_tmp)
+
 ### Hessian
+# likelihood_hessian <- function(beta)
+# {
+#   V <- diag(1, n)
+#   phat <- 1/(1+exp(-X%*%beta))
+#   diag(V) <- phat*(1-phat) 
+#   H <- t(X)%*%V%*%X
+#   return(H)
+# }
+# beta_new <- beta
+# Loss(beta_tmp) + Grad%*%(beta_new - beta_tmp) + (1/2)*t(beta_new - beta_tmp)%*%Hessian%*%(beta_new - beta_tmp) + (rho/2)*t(beta_new)%*%t(A)%*%A%*%beta_new + rho*t(d)%*%A%*%beta_new
+# beta_new
+# Loss(beta_new)
+
 likelihood_hessian <- function(beta)
 {
   H <- list()
   for( i in seq(n))
   {
-    S <- as.numeric(1/(1+exp(-Z[i,]%*%beta)))
-    H[[i]] <- (Z[i,]%*%t(Z[i,])) * S * (1-S)
+    S <- as.numeric(1/(1+exp(-X[i,]%*%beta)))
+    H[[i]] <- (X[i,]%*%t(X[i,])) * S * (1-S)
     
   }
   return(H)
@@ -142,9 +167,9 @@ likelihood_hessian <- function(beta)
 ### 
 rho <- 0.5
 
-lambda_1 <- 2
+lambda_1 <- 5
 
-lambda_2 <- 3
+lambda_2 <- 5
 
 lambda_vec = c(rep(lambda_1, p), rep(lambda_2, p*3))
 
@@ -156,73 +181,75 @@ nu_tmp <- rnorm(p*4, 0, 1)
 
 u_tmp <- nu_tmp / rho
 
-beta_tmp <- rnorm(p, 0, 1)
-
-### constraint
-cons <- rep(1, 82)
+beta_tmp <- rnorm(p, 1, 1)
 
 ### loop 
 i <- 1
 
-while( i <= 10000)
+while( i <= 1000)
 {
   d <- u_tmp - gamma_tmp
   
-  G <- gradient(beta_tmp, d)
-  
-  H <- likelihood_hessian(beta_tmp)
-  
-  Hessian <- Reduce('+', H) + rho*t(A)%*%A
-  
-  ### Newton's method in linear equality constraints
-  
-  mat_tmp <- rbind(cbind(Hessian, c(Loss(beta_tmp))*cons), cbind(t(cons),0))
-  
-  v <- - solve(mat_tmp) %*% rbind(t(G), t(cons)%*%beta_tmp)
-  
-  ### backtracking line search
-  t <- 1
-  
-  while (TRUE) {
+  j <- 1
+
+  while (TRUE)
+    {
+
+    Grad <- gradient(beta_tmp)
+    # Grad <- grad(loloss, beta_tmp)
+    H <- likelihood_hessian(beta_tmp)
+    Hessian <- Reduce('+', H)
+    # Hessian <- hessian(loloss, beta_tmp)
     
-    beta_candidate <- beta_tmp + t * v[1:82]
+    Dmat <- rho*t(A)%*%A + Hessian
     
-    if(Loss(beta_candidate)[1,1] <= Loss(beta_tmp) + a*t*G%*%v[1:82])
-      {
-        break
-      } else{ 
-        t <- bt_size*t
+    Amat <- matrix(1, nrow = length(beta))
+    
+    dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
+    
+    beta_new <- solve.QP(Dmat, dvec, Amat, bvec = 0, meq = 1)$solution
+    
+    criteria <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d)) 
+    
+    if( criteria <= 1e-6 )
+    {
+      cat(criteria, '\n',
+          beta_new[1], '\n')
+      beta_tmp <- beta_new
+      break
+    } else{
+
+    j <- j + 1
+
+    beta_tmp <- beta_new
+
       }
   }
   
-  beta_tmp <- beta_candidate
+  beta_tmp <- beta_new
   
   d_tilde <- A %*% beta_tmp + u_tmp
   
-  gamma_tmp = ifelse(abs(d_tilde) > lambda_vec /rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
+  gamma_tmp = ifelse(abs(d_tilde) > lambda_vec/rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
   
   u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
   
   if( i %% 100 == 0)
   {
     cat( ' Epoch:: ', i, '\n', 
-         'Gradient::', max(abs(G)), '\n', 
-         'Loss::', Loss(beta_tmp) + lambda_1*sum(abs(gamma_tmp[1:82])) + lambda_2*sum(abs(gamma_tmp[83:length(gamma_tmp)])) +
-           t(rho*u_tmp) %*% (A%*%beta_tmp - gamma_tmp) + (rho/2)*sum((A%*%beta_tmp - gamma_tmp)^2), '\n', '\n',
+         'Gradient::', '', '\n',
          'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
          'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
-         'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum), '\n','\n',
-         '===================================================================================================================', '\n','\n')
+         'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum) , '\n','\n',
+         '======================================================================================', '\n','\n')
   }
   
   i <- i + 1
+
 }
+sum(beta_new)
+plot(beta, beta_tmp[1:82])
 
-
-
-
-
-G
 
 
 
