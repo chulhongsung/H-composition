@@ -83,10 +83,10 @@ p = 82; l = 3; n = 1000
 
 ### Loss function for beta
 
-Loss <- function(beta){
-  L  <- -t(Y) %*% (X %*% beta) + colSums(log(1+exp(X%*%beta)))
-  return(L)
-}
+# Loss <- function(beta){
+#   L  <- -t(Y) %*% (X %*% beta) + colSums(log(1+exp(X%*%beta)))
+#   return(L)
+# }
 
 ### Gradient
 gradient <- function(beta)
@@ -155,14 +155,17 @@ while( i <= 1000)
     
     beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
     
+    ### Lagrangian multiplier
     object <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$Lagrangian
       
     criteria <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
     
-    if( criteria <= 1e-6 )
-    {
+    ### KKT condition
+    if( criteria <= 1e-6 ) 
+    { 
+      ### Convergence
       beta_tmp <- beta_new
-      break
+      break 
     } else{
 
     j <- j + 1
