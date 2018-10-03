@@ -7,6 +7,42 @@ if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
 if(!require(quadprog)){ install.packages('quadprog')}; require(quadprog)
 if(!require(numDeriv)){ install.packages('numDeriv')}; require(numDeriv)
 
+load('H-composition3.RData')
+## data preprocessing
+
+# g <-  bf_x.o[selv,]
+# 
+# ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
+# 
+# g <- g[!(g$genus %in% ng$genus), ]
+# 
+# g$g1 <- g %>% group_by(pylum) %>% group_indices() #5
+# g$g2 <- g %>% group_by(pylum, class) %>% group_indices() #11
+# g$g3 <- g %>% group_by(pylum, class, order) %>% group_indices() #16
+# g$g4 <- g %>% group_by(pylum, class, order, family) %>% group_indices() #39
+# g$g5 <- g %>% group_by(pylum, class, order, family, genus) %>% group_indices() #89
+# 
+# g <- g[g$g2 != 2,]
+# g <- g[g$g4 != 32,]
+# 
+# ug <- g %>% distinct(pylum, class, order, family, genus)%>% arrange(pylum, class, order, family, genus)
+# 
+# ug$g1 <- ug %>% group_by(pylum) %>% group_indices() #5
+# 
+# ug <- ug[ug$g1 != 4,]
+# 
+# ug$g2 <- ug %>% group_by(pylum, class) %>% group_indices() #11
+# 
+# ug <- ug[ug$g2 != 7 & ug$g2 != 8,]
+# 
+# ug$g3 <- ug %>% group_by(pylum, class, order) %>% group_indices() #16
+# 
+# ug <- ug[ug$g3 != 2 & ug$g3 != 11,]
+# 
+# ug$g4 <- ug %>% group_by(pylum, class, order, family) %>% group_indices() #39
+# 
+# ug$g5 <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() #87
+
 set.seed(2019)
 
 gl <- list()
@@ -145,7 +181,7 @@ nu_tmp <- rnorm(p*4, 0, 1)
 
 u_tmp <- nu_tmp / rho
 
-beta_tmp <- rnorm(p, 1, 1)
+beta_tmp <- rnorm(p, 0, 0.01)
 
 ### loop 
 i <- 1
@@ -156,39 +192,40 @@ while( i <= 1000)
   
   j <- 1
 
-  while (TRUE)
-    {
+  # while (TRUE)
+  #   {
 
     Grad <- gradient(beta_tmp)
     # Grad <- grad(loloss, beta_tmp)
     H <- likelihood_hessian(beta_tmp)
+    
     Hessian <- Reduce('+', H)
     # Hessian <- hessian(loloss, beta_tmp)
     
-    Dmat <- rho*t(A)%*%A + Hessian
+    Dmat <- rho*(t(A)%*%A) + Hessian
     
     Amat <- matrix(1, nrow = length(beta))
     
     dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
     
-    beta_new <- solve.QP(Dmat, dvec, Amat, bvec = 0, meq = 1)$solution
+    beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
     
-    criteria <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d)) 
-    
-    if( criteria <= 1e-6 )
-    {
-      cat(criteria, '\n',
-          beta_new[1], '\n')
-      beta_tmp <- beta_new
-      break
-    } else{
-
-    j <- j + 1
-
-    beta_tmp <- beta_new
-
-      }
-  }
+  #   criteria <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d + 1)) 
+  #   
+  #   if( criteria <= 1e-6 )
+  #   {
+  #     cat(criteria, '\n',
+  #         beta_new[1], '\n')
+  #     beta_tmp <- beta_new
+  #     break
+  #   } else{
+  # 
+  #   j <- j + 1
+  # 
+  #   beta_tmp <- beta_new
+  # 
+  #     }
+  # }
   
   beta_tmp <- beta_new
   
@@ -202,9 +239,9 @@ while( i <= 1000)
   {
     cat( ' Epoch:: ', i, '\n', 
          'Gradient::', '', '\n',
-         'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
-         'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
-         'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum) , '\n','\n',
+         'By pylum', '\n', tapply(gamma_tmp[1:82], gl[[1]], sum), '\n', '\n',
+         'By pylum & class', '\n', tapply(gamma_tmp[1:82], gl[[2]], sum), '\n', '\n',
+         'By pylum & class & order', '\n', tapply(gamma_tmp[1:82], gl[[3]], sum) , '\n','\n',
          '======================================================================================', '\n','\n')
   }
   
@@ -212,8 +249,8 @@ while( i <= 1000)
 
 }
 sum(beta_new)
-plot(beta, beta_tmp[1:82])
+plot(beta, beta_new[1:82])
 
-
+gamma_tmp[1:82]
 
 
