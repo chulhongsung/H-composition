@@ -1,127 +1,21 @@
 rm(list = ls())
 gc(reset = TRUE)
 
-#load(data)
-
 if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
 if(!require(quadprog)){ install.packages('quadprog')}; require(quadprog)
-if(!require(numDeriv)){ install.packages('numDeriv')}; require(numDeriv)
 
-load('H-composition3.RData')
-## data preprocessing
+load('H-composition simulation.RData')
 
-# g <-  bf_x.o[selv,]
-# 
-# ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
-# 
-# g <- g[!(g$genus %in% ng$genus), ]
-# 
-# g$g1 <- g %>% group_by(pylum) %>% group_indices() #5
-# g$g2 <- g %>% group_by(pylum, class) %>% group_indices() #11
-# g$g3 <- g %>% group_by(pylum, class, order) %>% group_indices() #16
-# g$g4 <- g %>% group_by(pylum, class, order, family) %>% group_indices() #39
-# g$g5 <- g %>% group_by(pylum, class, order, family, genus) %>% group_indices() #89
-# 
-# g <- g[g$g2 != 2,]
-# g <- g[g$g4 != 32,]
-# 
-# ug <- g %>% distinct(pylum, class, order, family, genus)%>% arrange(pylum, class, order, family, genus)
-# 
-# ug$g1 <- ug %>% group_by(pylum) %>% group_indices() #5
-# 
-# ug <- ug[ug$g1 != 4,]
-# 
-# ug$g2 <- ug %>% group_by(pylum, class) %>% group_indices() #11
-# 
-# ug <- ug[ug$g2 != 7 & ug$g2 != 8,]
-# 
-# ug$g3 <- ug %>% group_by(pylum, class, order) %>% group_indices() #16
-# 
-# ug <- ug[ug$g3 != 2 & ug$g3 != 11,]
-# 
-# ug$g4 <- ug %>% group_by(pylum, class, order, family) %>% group_indices() #39
-# 
-# ug$g5 <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() #87
-
-set.seed(2019)
-
-gl <- list()
-gl[[1]] <- ug %>% group_by(pylum) %>% group_indices() ### k1 = 5
-gl[[2]] <- ug %>% group_by(pylum, class) %>% group_indices() ### k2 = 11
-gl[[3]] <- ug %>% group_by(pylum, class, order) %>% group_indices() ### k3 = 15
-gl[[4]] <- ug %>% group_by(pylum, class, order, family) %>% group_indices() ### k4 = 38
-gl[[5]] <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() ### k5 = 87
+set.seed(2018)
 
 p = 82; l = 3; n = 1000
 
-#M_matrix
-m_matrix <- function(i){
-  k <- max(gl[[i]])
-  m <- matrix(rep(0, k * length(gl[[i]])), ncol = k)
-  for ( j in seq_len(k)){
-    m[gl[[i]] == j,j] <- 1
-  }
-  return(m)
-}
-
-M_matrix_list <- lapply(seq_len(l), m_matrix ) 
-
-#Pi matrix
-pi_matrix <- lapply(M_matrix_list, function(x){ x %*% solve( t(x) %*% x ) %*% t(x)})
-
-### Z
-Z <- matrix(rnorm(p * n, mean = 0, sd = 1), nrow = n)
-
-### real beta
-beta <-  c()
-
-beta_generator <- function(l)
-{
-  for ( i in seq_len(max(gl[[l]])))
-  {
-    if(sum(gl[[l]] == i) %% 2 == 0){
-      beta_j <- rep(0, sum(gl[[l]] == i))
-      beta <- c(beta, beta_j)
-    } else{ 
-      beta_j <- rep(c(1,-1), sum(gl[[l]] == i)/2 )
-      beta <- c(beta, beta_j, 0)
-    }
-  }
-  return(beta)
-}
-
-beta <- beta_generator(3)
-
-### Y logistic distribution
-prob <- exp(Z %*% beta)/(1 + exp(Z %*% beta))
-
-Y <- rbinom(n = n, size = 1,prob = prob)
-
-### X matrix
-alpha <- c()
-
-for ( i in seq_len(5))
-{
-  alpha[i] <- rexp(n = 1, rate = i)
-  eval(parse(text = paste0('x', i, ' <- alpha[', i, '] * exp(Z[, gl[[1]] ==', i,'])')))
-}
-
-X <- cbind(x1,x2,x3,x4,x5)
-X <- log(X)
-
-### A matrix
-I <- diag(1, nrow = p)
-
-A <- rbind(I, pi_matrix[[1]], pi_matrix[[2]], pi_matrix[[3]])
-
 ### Loss function for beta
 
-Loss <- function(beta){
-  L  <- -t(Y) %*% (X %*% beta) + colSums(log(1+exp(X%*%beta)))
-  return(L)
-}
-
-### Newton's method under equality constrains
+# Loss <- function(beta){
+#   L  <- -t(Y) %*% (X %*% beta) + colSums(log(1+exp(X%*%beta)))
+#   return(L)
+# }
 
 ### Gradient
 gradient <- function(beta)
@@ -130,27 +24,6 @@ gradient <- function(beta)
   return(t(G))
 }
 
-# loloss <- function(x){
-#   -t(Y) %*% (X %*% x) + colSums(log(1+exp(X%*%x)))
-# }
-
-# hessian(loloss, x = beta_tmp)
-# 
-# gradient(beta_tmp)
-
-### Hessian
-# likelihood_hessian <- function(beta)
-# {
-#   V <- diag(1, n)
-#   phat <- 1/(1+exp(-X%*%beta))
-#   diag(V) <- phat*(1-phat) 
-#   H <- t(X)%*%V%*%X
-#   return(H)
-# }
-# beta_new <- beta
-# Loss(beta_tmp) + Grad%*%(beta_new - beta_tmp) + (1/2)*t(beta_new - beta_tmp)%*%Hessian%*%(beta_new - beta_tmp) + (rho/2)*t(beta_new)%*%t(A)%*%A%*%beta_new + rho*t(d)%*%A%*%beta_new
-# beta_new
-# Loss(beta_new)
 
 likelihood_hessian <- function(beta)
 {
@@ -191,25 +64,24 @@ while( i <= 1000)
   d <- u_tmp - gamma_tmp
   
   j <- 1
-
+  
   # while (TRUE)
   #   {
-
-    Grad <- gradient(beta_tmp)
-    # Grad <- grad(loloss, beta_tmp)
-    H <- likelihood_hessian(beta_tmp)
-    
-    Hessian <- Reduce('+', H)
-    # Hessian <- hessian(loloss, beta_tmp)
-    
-    Dmat <- rho*(t(A)%*%A) + Hessian
-    
-    Amat <- matrix(1, nrow = length(beta))
-    
-    dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
-    
-    beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
-    
+  
+  Grad <- gradient(beta_tmp)
+  
+  H <- likelihood_hessian(beta_tmp)
+  
+  Hessian <- Reduce('+', H)
+  
+  Dmat <- rho*(t(A)%*%A) + Hessian
+  
+  Amat <- matrix(1, nrow = length(beta))
+  
+  dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
+  
+  beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
+  
   #   criteria <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d + 1)) 
   #   
   #   if( criteria <= 1e-6 )
@@ -246,11 +118,9 @@ while( i <= 1000)
   }
   
   i <- i + 1
-
+  
 }
+
 sum(beta_new)
 plot(beta, beta_new[1:82])
-
-gamma_tmp[1:82]
-
 
