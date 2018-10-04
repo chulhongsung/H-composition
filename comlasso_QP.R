@@ -4,80 +4,9 @@ gc(reset = TRUE)
 if(!require(dplyr)){ install.packages('dplyr')}; require(dplyr)
 if(!require(quadprog)){ install.packages('quadprog')}; require(quadprog)
 
-load('H-composition3.RData')
+load('H-composition simulation.RData')
 
 set.seed(2018)
-
-gl <- list()
-gl[[1]] <- ug %>% group_by(pylum) %>% group_indices() ### k1 = 5
-gl[[2]] <- ug %>% group_by(pylum, class) %>% group_indices() ### k2 = 11
-gl[[3]] <- ug %>% group_by(pylum, class, order) %>% group_indices() ### k3 = 15
-gl[[4]] <- ug %>% group_by(pylum, class, order, family) %>% group_indices() ### k4 = 38
-gl[[5]] <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() ### k5 = 87
-
-p = 82; l = 3; n = 1000
-
-#M_matrix
-m_matrix <- function(i){
-  k <- max(gl[[i]])
-  m <- matrix(rep(0, k * length(gl[[i]])), ncol = k)
-  for ( j in seq_len(k)){
-    m[gl[[i]] == j,j] <- 1
-  }
-  return(m)
-}
-
-M_matrix_list <- lapply(seq_len(l), m_matrix ) 
-
-#Pi matrix
-pi_matrix <- lapply(M_matrix_list, function(x){ x %*% solve( t(x) %*% x ) %*% t(x)})
-
-### Z
-Z <- matrix(rnorm(p * n, mean = 0, sd = 1), nrow = n)
-
-### real beta
-beta <-  c()
-
-beta_generator <- function(l)
-{
-  for ( i in seq_len(max(gl[[l]])))
-  {
-    if(sum(gl[[l]] == i) %% 2 == 0){
-      beta_j <- rep(0, sum(gl[[l]] == i))
-      beta <- c(beta, beta_j)
-    } else{ 
-      beta_j <- rep(c(1,-1), sum(gl[[l]] == i)/2 )
-      beta <- c(beta, beta_j, 0)
-    }
-  }
-  return(beta)
-}
-
-beta <- beta_generator(3)
-
-### Y logistic distribution
-prob <- exp(Z %*% beta)/(1 + exp(Z %*% beta))
-
-Y <- rbinom(n = n, size = 1,prob = prob)
-
-### X matrix
-alpha <- c()
-
-for ( i in seq_len(5))
-{
-  alpha[i] <- rexp(n = 1, rate = i)
-  eval(parse(text = paste0('x', i, ' <- alpha[', i, '] * exp(Z[, gl[[1]] ==', i,'])')))
-}
-
-X <- cbind(x1,x2,x3,x4,x5)
-X <- log(X)
-
-### A matrix
-I <- diag(1, nrow = p)
-
-A <- rbind(I, pi_matrix[[1]], pi_matrix[[2]], pi_matrix[[3]])
-
-
 
 p = 82; l = 3; n = 1000
 
