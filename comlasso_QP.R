@@ -115,7 +115,7 @@ while( i <= 1000)
   if( i %% 100 == 0)
   {
     cat( ' Epoch:: ', i, '\n', 
-         'Gradient::', '', '\n',
+         'Beta KKT condition Gradient', criteria, '\n',
          'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
          'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
          'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum) , '\n','\n',
@@ -126,7 +126,6 @@ while( i <= 1000)
 
 }
 
-sum(beta_new)
-plot(beta, beta_new[1:82])
-cbind(gamma_tmp[1:82], beta)
-
+# Check 
+# sum(beta_tmp[1:82])
+# plot(beta, beta_tmp[1:82])
