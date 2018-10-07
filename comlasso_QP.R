@@ -87,10 +87,10 @@ while( i <= 1000)
     ### Lagrangian multiplier
     object <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$Lagrangian
       
-    criteria <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
+    stationarity <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
     
     ### KKT condition
-    if( criteria <= 1e-6 ) 
+    if( stationarity <= 1e-6 ) 
     { 
       ### Convergence
       beta_tmp <- beta_new
@@ -115,7 +115,7 @@ while( i <= 1000)
   if( i %% 100 == 0)
   {
     cat( ' Epoch:: ', i, '\n', 
-         'Beta KKT condition Gradient', criteria, '\n',
+         'Beta KKT condition Stationarity::', stationarity, '\n',
          'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
          'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
          'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum) , '\n','\n',
