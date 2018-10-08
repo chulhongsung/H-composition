@@ -50,7 +50,7 @@ set.seed(2019)
 p = 82; l = 3; n = 1000
 
 #M_matrix
-m_matrix <- function(i){
+m_matrix <- function(i, gl){
   k <- max(gl[[i]])
   m <- matrix(rep(0, k * length(gl[[i]])), ncol = k)
   for ( j in seq_len(k)){
@@ -59,7 +59,7 @@ m_matrix <- function(i){
   return(m)
 }
 
-M_matrix_list <- lapply(seq_len(l), m_matrix ) 
+M_matrix_list <- lapply(seq_len(l), function(x){m_matrix(x, gl)}) 
 
 #Pi matrix
 pi_matrix <- lapply(M_matrix_list, function(x){ x %*% solve( t(x) %*% x ) %*% t(x)})
@@ -68,10 +68,11 @@ pi_matrix <- lapply(M_matrix_list, function(x){ x %*% solve( t(x) %*% x ) %*% t(
 Z <- matrix(rnorm(p * n, mean = 0, sd = 1), nrow = n)
 
 ### real beta
-beta <-  c()
 
-beta_generator <- function(l)
+
+beta_generator <- function(l, gl)
 {
+  beta <-  c()
   for ( i in seq_len(max(gl[[l]])))
   {
     if(sum(gl[[l]] == i) %% 2 == 0){
@@ -85,7 +86,7 @@ beta_generator <- function(l)
   return(beta)
 }
 
-beta <- beta_generator(3)
+beta <- beta_generator(3, gl)
 
 ### Y logistic distribution
 prob <- exp(Z %*% beta)/(1 + exp(Z %*% beta))

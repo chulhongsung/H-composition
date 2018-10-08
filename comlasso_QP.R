@@ -6,26 +6,22 @@ if(!require(quadprog)){ install.packages('quadprog')}; require(quadprog)
 
 load('H-composition simulation.RData')
 
-set.seed(2018)
-
-p = 82; l = 3; n = 1000
-
 ### Loss function for beta
 
-# Loss <- function(beta){
+# Loss <- function(beta, X, Y){
 #   L  <- -t(Y) %*% (X %*% beta) + colSums(log(1+exp(X%*%beta)))
 #   return(L)
 # }
 
 ### Gradient
-gradient <- function(beta)
+gradient <- function(beta, X, Y)
 {
   G <- t(X)%*%(-Y+(1/(1+exp(-X%*%beta))))
   return(t(G))
 }
 
 
-likelihood_hessian <- function(beta)
+likelihood_hessian <- function(beta, X, n)
 {
   H <- list()
   for( i in seq(n))
@@ -39,12 +35,14 @@ likelihood_hessian <- function(beta)
 
 set.seed(2018)
 
+p = 82; l = 3; n = 1000
+
 ### 
 rho <- 0.5
 
-lambda_1 <- 5
+lambda_1 <- 3
 
-lambda_2 <- 5
+lambda_2 <- 3
 
 lambda_vec = c(rep(lambda_1, p), rep(lambda_2, p*3))
 
@@ -56,7 +54,7 @@ nu_tmp <- rnorm(p*4, 0, 1)
 
 u_tmp <- nu_tmp / rho
 
-beta_tmp <- rnorm(p, 0, 0.01)
+beta_tmp <- rep(0, p)
 
 ### loop 
 i <- 1
@@ -70,9 +68,9 @@ while( i <= 1000)
   while (TRUE)
     {
 
-    Grad <- gradient(beta_tmp)
+    Grad <- gradient(beta_tmp, X, Y)
 
-    H <- likelihood_hessian(beta_tmp)
+    H <- likelihood_hessian(beta_tmp, X, n)
     
     Hessian <- Reduce('+', H)
     
@@ -80,7 +78,7 @@ while( i <= 1000)
     
     Amat <- matrix(1, nrow = length(beta))
     
-    dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
+    dvec <- t(beta_tmp) %*% Hessian - Grad - rho*t(d) %*% A
     
     beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
     
@@ -90,11 +88,13 @@ while( i <= 1000)
     stationarity <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
     
     ### KKT condition
-    if( stationarity <= 1e-6 ) 
+    if(stationarity <= 1e-6) 
     { 
       ### Convergence
       beta_tmp <- beta_new
-      break 
+      
+      break
+      
     } else{
 
     j <- j + 1
