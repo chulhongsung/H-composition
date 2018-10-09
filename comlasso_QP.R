@@ -33,99 +33,105 @@ likelihood_hessian <- function(beta, X, n)
   return(H)
 }
 
-set.seed(2018)
+
+### Simulation loop
 
 p = 82; l = 3; n = 1000
 
-### 
-rho <- 0.5
+result_table <- c()
 
-lambda_1 <- 3
-
-lambda_2 <- 3
-
-lambda_vec = c(rep(lambda_1, p), rep(lambda_2, p*3))
-
-### initial gamma, nu, u and beta matrix
-
-gamma_tmp <- rnorm(p*4, 0, 1)
-
-nu_tmp <- rnorm(p*4, 0, 1)
-
-u_tmp <- nu_tmp / rho
-
-beta_tmp <- rep(0, p)
-
-### loop 
-i <- 1
-
-while( i <= 1000)
+for (lambda_1 in c(0,seq_len(5)))
 {
-  d <- u_tmp - gamma_tmp
-  
-  j <- 1
-
-  while (TRUE)
+  for ( lambda_2 in c(0,seq_len(20)))
+  {
+    rho <- 0.5
+    
+    lambda_vec = c(rep(lambda_1, p), rep(lambda_2, p*3))
+    
+    set.seed(2018)
+    
+    gamma_tmp <- rnorm(p*4, 0, 1)
+    
+    nu_tmp <- rnorm(p*4, 0, 1)
+    
+    u_tmp <- nu_tmp / rho
+    
+    beta_tmp <- rep(0, p)
+    
+    i <- 1
+    
+    while( i <= 10000)
     {
-
-    Grad <- gradient(beta_tmp, X, Y)
-
-    H <- likelihood_hessian(beta_tmp, X, n)
-    
-    Hessian <- Reduce('+', H)
-    
-    Dmat <- rho*(t(A)%*%A) + Hessian
-    
-    Amat <- matrix(1, nrow = length(beta))
-    
-    dvec <- t(beta_tmp) %*% Hessian - Grad - rho*t(d) %*% A
-    
-    beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
-    
-    ### Lagrangian multiplier
-    object <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$Lagrangian
+      d <- u_tmp - gamma_tmp
       
-    stationarity <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
-    
-    ### KKT condition
-    if(stationarity <= 1e-6) 
-    { 
-      ### Convergence
+      j <- 1
+      
+      while (TRUE)
+      {
+        
+        Grad <- gradient(beta_tmp, X, Y)
+        
+        H <- likelihood_hessian(beta_tmp, X, n)
+        
+        Hessian <- Reduce('+', H)
+        
+        Dmat <- rho*(t(A)%*%A) + Hessian
+        
+        Amat <- matrix(1, nrow = length(beta))
+        
+        dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
+        
+        beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
+        
+        ### Lagrangian multiplier 
+        object <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$Lagrangian
+        
+        stationarity_beta <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
+        
+        ### KKT condtion
+        if( stationarity_beta <= 1e-6 ) ### Convergence
+        {
+          beta_tmp <- beta_new
+          # cat( j, 'Convergence', '\n')
+          break
+        } else{
+          
+          j <- j + 1
+          
+          beta_tmp <- beta_new
+          
+        }
+      }
+      
       beta_tmp <- beta_new
       
-      break
+      d_tilde <- A %*% beta_tmp + u_tmp
       
-    } else{
-
-    j <- j + 1
-
-    beta_tmp <- beta_new
-
+      gamma_tmp = ifelse(abs(d_tilde) > lambda_vec/rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
+      
+      stationarity_gamma = all(abs(rho*(gamma_tmp - d_tilde)) <= lambda_vec)
+      
+      u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
+      
+      if( i %% 10000 == 0)
+      {
+        cat( ' Epoch:: ', i, '\n', 
+             'Beta KKT condition Stationarity::', stationarity_beta, '\n',
+             'Gamma KKT condition Stationarity::', stationarity_gamma, '\n', '\n',
+             'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
+             'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
+             'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum) , '\n','\n',
+             '======================================================================================', '\n','\n')
       }
+      
+      i <- i + 1
+      
+    }
+    result_table <- rbind(result_table, c(lambda_1, lambda_2, tapply(beta_tmp, gl[[1]], sum), tapply(beta_tmp, gl[[2]], sum), tapply(beta_tmp, gl[[3]], sum)))
   }
   
-  beta_tmp <- beta_new
-  
-  d_tilde <- A %*% beta_tmp + u_tmp
-  
-  gamma_tmp = ifelse(abs(d_tilde) > lambda_vec/rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
-  
-  u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
-  
-  if( i %% 100 == 0)
-  {
-    cat( ' Epoch:: ', i, '\n', 
-         'Beta KKT condition Stationarity::', stationarity, '\n',
-         'By pylum', '\n', tapply(beta_tmp[1:82], gl[[1]], sum), '\n', '\n',
-         'By pylum & class', '\n', tapply(beta_tmp[1:82], gl[[2]], sum), '\n', '\n',
-         'By pylum & class & order', '\n', tapply(beta_tmp[1:82], gl[[3]], sum) , '\n','\n',
-         '======================================================================================', '\n','\n')
-  }
-  
-  i <- i + 1
-
 }
 
+save(result_table, file = 'simulation_result.RData')
+
 # Check 
-# sum(beta_tmp[1:82])
-# plot(beta, beta_tmp[1:82])
