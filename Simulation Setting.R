@@ -10,7 +10,7 @@ load('SNU.RData')
 
 g <-  bf_x.o[selv,]
 
-ng <- g %>% select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
+ng <- g %>% dplyr::select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
 
 g <- g[!(g$genus %in% ng$genus), ]
 
@@ -45,7 +45,7 @@ gl[[4]] <- ug %>% group_by(pylum, class, order, family) %>% group_indices()
 gl[[5]] <- ug %>% group_by(pylum, class, order, family, genus) %>% group_indices() 
 
 ## Set simulation
-set.seed(2019)
+set.seed(1)
 
 p = 82; l = 3; n = 1000
 
@@ -88,6 +88,8 @@ beta_generator <- function(l, gl)
 
 beta <- beta_generator(3, gl)
 
+beta <- beta/10
+
 ### Y logistic distribution
 prob <- exp(Z %*% beta)/(1 + exp(Z %*% beta))
 
@@ -111,3 +113,7 @@ I <- diag(1, nrow = p)
 A <- rbind(I, pi_matrix[[1]], pi_matrix[[2]], pi_matrix[[3]])
 
 save(gl, Z, X, Y, A, beta,  file = 'H-composition simulation.RData')
+
+
+
+
