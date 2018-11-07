@@ -4,7 +4,7 @@
 ##### lambda2  = grid search (1e-3 ~ le-1)
 
 ### sum of group plot 
-=================
+===============
 
 ##### x_axis = 1/lambda2,  y_axis = sum
 
