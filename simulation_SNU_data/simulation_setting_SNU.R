@@ -6,6 +6,7 @@ load('SNU.RData')
 
 library(dplyr)
 
+### lv pylum, class, order, family, genus
 lv2 <- bf_x.o$pylum[selv]
 
 lv3 <- bf_x.o$class[selv]
@@ -27,7 +28,7 @@ g <- g %>% arrange(lv2, lv3, lv4, lv5, lv6)
 ## g[g$lv6 == 'Oscillibacter',] Firmicutes Clostridia Clostridiales Ruminococcaceae Oscillibacter
 ## g[g$lv6 == 'Parasutterella',] Proteobacteria Betaproteobacteria Burkholderiales Sutterellaceae Parasutterella
 
-### lv6는 똑같은데 앞선 lv이 다른 경우를 같게 만드는 작업
+### unifying group have same lv6, different upper lv
 g[g$lv6 == 'Odoribacter' & g$lv3 == 'Bacteroidetes',1:4] <- c('Bacteroidetes', 'Bacteroidia', 'Bacteroidales', 'Porphyromonadaceae')
 g[g$lv6 == 'Oscillibacter' & g$lv3 == 'Bacilli', 1:4] <- data.frame(lv2 = c("Firmicutes", "Firmicutes"), lv3 = c('Clostridia','Clostridia'),
                                                                     lv4 = c('Clostridiales', 'Clostridiales'), lv5= c('Ruminococcaceae', 'Ruminococcaceae'))
@@ -35,6 +36,7 @@ g[g$lv6 == 'Parasutterella' & g$lv5 == 'Sutterellaceae', 1:4] <- c('Proteobacter
 
 g <- g %>% distinct(lv2, lv3, lv4, lv5, lv6)
 
+### indexing group
 g$g2 <- g %>% group_by(lv2) %>% group_indices()
 g$g3 <- g %>% group_by(lv2, lv3) %>% group_indices()
 g$g4 <- g %>% group_by(lv2, lv3, lv4) %>% group_indices()

@@ -1,10 +1,9 @@
 rm(list = ls())
 gc(reset = T)
 
-require(ggplot2)
 require(gridExtra)
-library(stringr)
-library(dplyr)
+require(stringr)
+require(dplyr)
 
 ### set directory where cv simulation error_rate file downloaded
 dir2 = '' 
