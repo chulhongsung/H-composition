@@ -1,6 +1,6 @@
 # comlasso
 
-**1. Plotting of group sum** 
+## 1. Plotting of group sum
 
 - **hyperparameters**
 
