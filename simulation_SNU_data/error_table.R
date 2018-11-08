@@ -2,11 +2,9 @@ rm(list = ls())
 gc(reset = T)
 
 require(ggplot2)
-require(reshape2)
 require(gridExtra)
 library(stringr)
 library(dplyr)
-library(kableExtra)
 
 ### set directory where cv simulation error_rate file downloaded
 dir2 = '' 
@@ -31,4 +29,4 @@ colnames(error_table) <- c('lambda1', 'lambda2', 'error_rate1', 'error_rate2', '
 ### compute mean_error_rate
 error_table <- error_table %>% mutate(mean_error = rowSums(error_table[,3:7])/5)
 
-save(error_table, file = 'final_error_table.RData')
+save(error_table, file = 'error_table.RData')
