@@ -1,6 +1,6 @@
 # comlasso
 
-1.sum of group plot 
+**1. Plotting of group sum** 
 
 - lambda1 = 0.05, lambda2  = grid search (1e-3 ~ le-1)
 - x_axis = 1/lambda2,  y_axis = sum
