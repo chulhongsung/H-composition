@@ -13,6 +13,7 @@
 
 
 **2. 5-fold Cross-Validation result
+
 ![equation](https://latex.codecogs.com/gif.latex?%5Cfn_cs%20%5Clambda_%7B2%7D%20%3D%20seq%2810%5E%7B-3%7D%2C%2010%5E%7B-1%7D%2C%20length.out%20%3D%2020%29)
 
-<img width = "200" height = '300' src = https://user-images.githubusercontent.com/37679460/48333300-38f91480-e69a-11e8-9a0a-425194fa8074.png>
+<img width = "400" height = '400' src = https://user-images.githubusercontent.com/37679460/48333300-38f91480-e69a-11e8-9a0a-425194fa8074.png>
