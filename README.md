@@ -20,7 +20,7 @@
 
   ![equation](https://latex.codecogs.com/gif.latex?%5Cfn_cs%20%5Clambda_%7B1%7D%20%3D%200.05%2C%20%5C%2C%20%5Clambda_%7B2%7D%3Dseq%2810%5E%7B-3%7D%2C%2010%5E%7B-1%7D%2C%20length.out%20%3D%2020%29%20%5C%2C%5C%2C%5C%2C%20Top6)
  
- - **mean_error = mean of 5-validation set error**
+ - **mean_error = mean of 5-validation set misclassification rate**
 
 <img width = "570" height = '400' src = https://user-images.githubusercontent.com/37679460/48333300-38f91480-e69a-11e8-9a0a-425194fa8074.png>
 
