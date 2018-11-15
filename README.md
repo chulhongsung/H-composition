@@ -22,5 +22,3 @@
  
  - **mean_error = mean of 5-validation set misclassification rate**
 
-<img width = "570" height = '400' src = https://user-images.githubusercontent.com/37679460/48333300-38f91480-e69a-11e8-9a0a-425194fa8074.png>
-
