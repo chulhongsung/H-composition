@@ -17,9 +17,9 @@
 
 ### **~2. 5-fold Cross-Validation result~**
 
-~- **hyperparameters~**
+- **~hyperparameters~**
 
-~- **mean_error = mean of 5-validation set misclassification rate~**
+~- **mean_error = mean of 5-validation set misclassification rate**~
 -------------------------------------
 
 
