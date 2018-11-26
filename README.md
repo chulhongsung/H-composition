@@ -1,6 +1,6 @@
 # H-composition
 
-**1. Plotting of group sum**
+### **1. Plotting of group sum**
 
 - **hyperparameters**
 
@@ -15,7 +15,7 @@
 -----------------------------------
 
 
-**2. ~5-fold Cross-Validation result~**
+### **2. ~5-fold Cross-Validation result~**
 
 - **hyperparameters**
 
@@ -24,7 +24,7 @@
 -------------------------------------
 
 
-**3. Test result table**
+### **3. Test result table**
 
 - **hyperparameters**
 
