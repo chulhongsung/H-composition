@@ -22,3 +22,8 @@
  
  - **mean_error = mean of 5-validation set misclassification rate**
 
+**3. Test result table**
+
+- **hyperparameters**
+
+Fix ![equation](https://latex.codecogs.com/gif.latex?\lambda_{1}&space;=&space;1.053105)
