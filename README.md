@@ -29,7 +29,7 @@
 
 - **hyperparameters**
 
-![equation](https://latex.codecogs.com/gif.latex?\fn_cs&space;\lambda_{1}&space;=&space;1.053105)
+  ![equation](https://latex.codecogs.com/gif.latex?\fn_cs&space;\lambda_{1}&space;=&space;1.053105)
 
 <img width = "500" height = '800' src = https://user-images.githubusercontent.com/37679460/49022933-6802a080-f1d9-11e8-9ad1-a63e94861576.png>
 
