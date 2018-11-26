@@ -15,7 +15,7 @@
 -----------------------------------
 
 
-**2. 5-fold Cross-Validation result**
+**2. ~5-fold Cross-Validation result~**
 
 - **hyperparameters**
 
