@@ -1,4 +1,4 @@
-# comlasso
+# H-composition
 
 **1. Plotting of group sum**
 
