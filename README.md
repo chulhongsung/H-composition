@@ -19,7 +19,7 @@
 
 - **~hyperparameters~**
 
-~- **mean_error = mean of 5-validation set misclassification rate**~
+- **~mean_error = mean of 5-validation set misclassification rate~**
 -------------------------------------
 
 
