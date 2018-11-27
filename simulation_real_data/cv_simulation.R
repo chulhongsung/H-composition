@@ -6,7 +6,7 @@ library(dplyr)
 library(quadprog)
 
 ### set directory 
-dir = '' 
+dir <- '' 
 setwd(dir)
 
 source("function_set.R")
@@ -24,7 +24,7 @@ id <- sample(id)
 lambda_1 <- 0.05
 
 ### file : lambda2 indexing 
-file = 1
+file <- 1
 
 eval(parse(text = paste0('error_rate', file, ' <- c()')))
 
@@ -33,7 +33,7 @@ lambda_2 <- seq(1e-3, 1e-1, length.out = 20)[file]
 ### setting 
 p <- 123; n <- 48; l <- 3; rho <- 0.5
 
-lambda_vec = c(rep(lambda_1, p), rep(lambda_2, p*l))
+lambda_vec <- c(rep(lambda_1, p), rep(lambda_2, p*l))
 
 gamma_tmp <- rnorm(p*(l+1), 0, 1)
 
@@ -108,10 +108,10 @@ for ( k in seq_len(5))
     
     d_tilde <- A %*% beta_tmp + u_tmp
     
-    gamma_tmp = ifelse(abs(d_tilde) > lambda_vec/rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
+    gamma_tmp <- ifelse(abs(d_tilde) > lambda_vec/rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
     
     ### gamma KKT condition
-    stationarity_gamma = all(abs(rho*(gamma_tmp - d_tilde)) <= lambda_vec)
+    stationarity_gamma <- all(abs(rho*(gamma_tmp - d_tilde)) <= lambda_vec)
     
     u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
     

@@ -43,7 +43,7 @@ g$g4 <- g %>% group_by(lv2, lv3, lv4) %>% group_indices()
 g$g5 <- g %>% group_by(lv2, lv3, lv4, lv5) %>% group_indices()
 g$g6 <- g %>% group_by(lv2, lv3, lv4, lv5, lv6) %>% group_indices()
 
-p = 123; l = 3; n = 83  
+p <- 123; l <- 3; n <- 83  
 
 gl <- list()
 gl[[1]] <- g$g2

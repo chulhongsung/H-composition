@@ -8,7 +8,7 @@ load('SNU.RData')
 
 ## data preprocessing
 
-g <-  bf_x.o[selv,]
+g <- bf_x.o[selv,]
 
 ng <- g %>% dplyr::select(genus) %>% group_by(genus) %>% tally() %>% filter(n ==1)
 

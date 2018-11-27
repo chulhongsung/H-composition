@@ -6,7 +6,7 @@ require(stringr)
 require(dplyr)
 
 ### set directory where cv simulation error_rate file downloaded
-dir2 = '' 
+dir2 <- '' 
 
 setwd(dir2)
 
