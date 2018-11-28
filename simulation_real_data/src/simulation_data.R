@@ -73,15 +73,4 @@ A <- rbind(I, pi_matrix[[1]], pi_matrix[[2]], pi_matrix[[3]])
 ### y = (-1, 1) -> (0, 1)
 y <- if_else(y == 1, 1, 0)
 
-### total(83), train(60), test set(23)
-set.seed(1)
-
-id <- sample(1:83, 60) 
-
-train.x <- newz[id,]
-test.x <- newz[-id,]
-
-train.y <- y[id]
-test.y <- y[-id]
-
-save(gl, train.x, test.x, train.y, test.y , A, file = 'simulation_setting_SNU_cv.RData')
+save(gl, newz, y, A, file = 'simulation_data.RData')

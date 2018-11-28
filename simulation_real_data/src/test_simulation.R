@@ -1,23 +1,28 @@
-library(dplyr)
-library(quadprog)
+args <- (commandArgs(TRUE))
 
-setwd("/home/hong/H-composition")
+start <- Sys.time()
+
+setwd("~")
+load('simulation_data.RData')
 
 source("function_set.R")
+require(dplyr)
+require(quadprog)
 
-load('simulation_setting_SNU_cv.RData')
+today <- gsub('-', '', substr(Sys.time(), start = 1, stop = 10))
 
-test_simul <- function(file)
+eval(parse(text = args[[1]]))
+
+task_num <- seq((file_idx-1)*50+1, file_idx*50, length.out = 50)  
+
+partition <- expand.grid(seed = 1:20, lambda_1 = seq(0, 2, length.out = 10), lambda_2 = c(0, seq(1e-3, 1e-1, length.out = 13), seq(1e-1, 1, length.out = 7)[2:7]))
+
+eval(parse(text = paste0('test.result', file_idx, ' <- c( )')))
+
+p <- 123; n <- 60; l <- 3; rho <- 0.5
+
+for ( i in 1:50 )
 {
-  
-  lambda_1 <- seq(1e-3, 2, length.out = 20)[11]
-  
-  lambda_2 <- c(0, seq(1e-3, 1e-1, length.out = 20),seq(2*1e-1, 1, length.out = 5))[file]
-  
-  p <- 123; n <- 60; l <- 3; rho <- 0.5
-  
-  lambda_vec <- c(rep(lambda_1, p), rep(lambda_2, p*l))
-  
   gamma_tmp <- rnorm(p*(l+1), 0, 1)
   
   nu_tmp <- rnorm(p*(l+1), 0, 1)
@@ -25,7 +30,19 @@ test_simul <- function(file)
   u_tmp <- nu_tmp / rho
   
   beta_tmp <- rep(0, p)
-    
+  
+  set <- settting_fun(partition, i, newz, p, l)
+  
+  train.x <- set$train.x
+  
+  test.x <- set$test.x
+  
+  train.y <- set$train.y
+  
+  test.y <- set$test.y
+  
+  lambda_vec <- set$lambda_vec 
+  
   i <- 1
   
   while( i <= 10000)
@@ -60,15 +77,16 @@ test_simul <- function(file)
       if( stationarity_beta <= 1e-6 ) ### Convergence
       {
         beta_tmp <- beta_new
-        #cat( j, 'Convergence', '\n')
+        
         break
+        
       } else{
         
         j <- j + 1
         
         beta_tmp <- beta_new
         
-        if( j >= 10 ){
+        if( j >= 5 ){
           break
         }
         
@@ -82,8 +100,6 @@ test_simul <- function(file)
     
     gamma_tmp <- ifelse(abs(d_tilde) > lambda_vec/rho, d_tilde - sign(d_tilde) * (lambda_vec/rho), 0)
     
-    stationarity_gamma <- all(abs(rho*(gamma_tmp - d_tilde)) <= lambda_vec)
-    
     u_tmp <- u_tmp + (A %*% beta_tmp - gamma_tmp)
     
     i <- i + 1
@@ -96,10 +112,20 @@ test_simul <- function(file)
   
   error_rate <- mean(yhat != test.y)
   
-  test1.result <- t(c(error_rate, lambda_1, lambda_2, t(beta_tmp)))
+  test.result <- t(c(error_rate, set$lambda_1, set$lambda_2, t(beta_tmp)))
   
-  test1.result <- as.data.frame(test1.result)
+  eval(parse(text = paste0('test.result', file_idx, ' <- rbind(test.result', file_idx, ', test.result)')))
   
-  test1.result
-
 }
+
+eval(parse(text = paste0('test.result', file_idx, ' <- as.data.frame(test.result)')))
+
+dir.create(paste0("~",today))
+
+setwd(paste0("~",today))
+
+eval(parse(text = paste0('save(test.result', file_idx, ',', paste0("file =","'", paste0('test.result',file_idx,'.RData',"')")))))
+
+end <- Sys.time() 
+  
+end - start
