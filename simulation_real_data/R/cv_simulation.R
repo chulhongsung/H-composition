@@ -22,14 +22,6 @@ p <- 123; n <- 48; l <- 3; rho <- 0.5
 
 for (s in 1:100)
 {
-  gamma_tmp <- rnorm(p*(l+1), 0, 1)
-  
-  nu_tmp <- rnorm(p*(l+1), 0, 1)
-  
-  u_tmp <- nu_tmp / rho
-  
-  beta_tmp <- rep(0, p)
-  
   set <- setting_cv_fun(partition, task_num, s, newz, p, l)
   
   seed <- set$seed
@@ -50,7 +42,6 @@ for (s in 1:100)
   
   for ( k in seq_len(5))
   {
-    
     train.x <- cv.x[-idx[[k]],]
     
     train.y <- cv.y[-idx[[k]]]
@@ -58,6 +49,14 @@ for (s in 1:100)
     valid.x <- cv.x[idx[[k]],]
     
     valid.y <- cv.y[idx[[k]]]
+    
+    gamma_tmp <- rnorm(p*(l+1), 0, 1)
+    
+    nu_tmp <- rnorm(p*(l+1), 0, 1)
+    
+    u_tmp <- nu_tmp / rho
+    
+    beta_tmp <- rep(0, p)
     
     i <- 1
     
@@ -82,10 +81,12 @@ for (s in 1:100)
         
         dvec <- t(beta_tmp)%*%Hessian - Grad - rho*t(d) %*% A
         
-        beta_new <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$solution
+        sol <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)
+        
+        beta_new <- sol$solution
         
         ### Lagrangian multiplier
-        object <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)$Lagrangian
+        object <- sol$Lagrangian
         
         stationarity_beta <- max(abs((rho*t(A)%*%A + Hessian)%*%beta_new + t(Grad) - Hessian%*%beta_tmp + rho*t(A)%*%d - object))
         
