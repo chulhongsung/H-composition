@@ -6,5 +6,5 @@
 ## Simulation
 
 1. 5-fold CV for hyperparameters(lam1, lam2)
-2. Train, test 
+2. Train data, Test data 
 
