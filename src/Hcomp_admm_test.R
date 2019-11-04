@@ -122,19 +122,19 @@ for(s in 1:100){
     
   }
   
-  result_table <- c(seed, lambda_1, lambda_2, mse, t(tmp_beta))
-  
   if(i==10000) cat("Not satisfied kkt condition",'\n')
   
-  result_table$mse = mean((test.x%*%tmp_beta - test.y)^2)
+  mse = mean((test.x%*%tmp_beta - test.y)^2)
+  
+  result_table <- c(seed, lambda_1, lambda_2, mse, t(tmp_beta))
   
   eval(parse(text = paste0('test.result', file_idx, ' <- rbind(test.result', file_idx, ', result_table)')))
   
   cat("Task number", file_idx, ',', s, '% Completed','\n')
 }
 
-eval(parse(text = paste0('cv.result', file_idx, ' <- as.data.frame(cv.result', file_idx, ')' )))
+eval(parse(text = paste0('test.result', file_idx, ' <- as.data.frame(test.result', file_idx, ')' )))
 
-setwd('/home/hong/H-composition/cv_result')
+setwd('/home/hong/H-composition/test_result')
 
-eval(parse(text = paste0('save(cv.result', file_idx, ',', paste0("file =","'", paste0('cv.result',file_idx,'.RData',"')")))))
+eval(parse(text = paste0('save(test.result', file_idx, ',', paste0("file =","'", paste0('test.result',file_idx,'.RData',"')")))))
