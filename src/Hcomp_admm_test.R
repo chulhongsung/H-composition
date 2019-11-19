@@ -82,7 +82,7 @@ for(s in 1:100){
   
   ### Quadratic programming
   
-  Dmat <- t(z)%*%z + rho*(t(A)%*%A)
+  Dmat <- t(train.x)%*%train.x + rho*(t(A)%*%A)
   
   Amat <- matrix(1, nrow = length(tmp_beta))
   
@@ -92,7 +92,7 @@ for(s in 1:100){
     
     tmp_d <- tmp_u - tmp_gamma 
     
-    dvec <- (-1)*(rho*t(tmp_d)%*%A - t(y)%*%z)
+    dvec <- (-1)*(rho*t(tmp_d)%*%A - t(y)%*%train.x)
     
     QP_fit <- solve.QP(Dmat = Dmat, dvec = dvec, Amat = Amat, bvec = 0, meq = 1)
     
